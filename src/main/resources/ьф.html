@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка файла на сервер</title>
+</head>
+<body>
+
+<h1>Отправить файл на сервер</h1>
+
+<input type="file" id="fileInput">
+<button onclick="sendFile()">Отправить</button>
+
+<script>
+    function sendFile() {
+        const input = document.getElementById('fileInput');
+        const file = input.files[0];
+
+        if (!file) {
+            alert("Файл не выбран!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file); // Важно: 'file' должен совпадать с @RequestParam в контроллере
+
+        fetch("http://localhost:8081/api/upload/", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.text())
+            .then(result => {
+                console.log("Ответ сервера:", result);
+                alert("Ответ сервера: " + result);
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+                alert("Ошибка: " + error);
+            });
+    }
+</script>
+
+</body>
+</html>
