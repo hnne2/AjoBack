@@ -29,10 +29,7 @@ class FeedbackController(
             session.ipAddress =ip
             lotteryService.saveSession(session)
         }
-        val prize = inventoryService.getPrizeByLabel(request.prize)
-        if (prize!=null){
-            inventoryService.incrementPrizeCounters(prize.type)
-        }
+        
         service.saveFeedback(request)
     }
 }

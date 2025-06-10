@@ -18,7 +18,7 @@ data class PrizeInventory
     val type: PrizeType,
 
     @Column(name = "total_quantity", nullable = false)
-    val totalQuantity: Int,
+    var totalQuantity: Int,
 
     @Column(name = "won_total", nullable = false)
     var wonTotal: Int = 0,

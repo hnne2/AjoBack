@@ -23,21 +23,28 @@ class LotteryService(
     fun pickPrize(ip: String): PrizeInventory? {
         if (lotteryRepo.findByIpAddress(ip) != null) return null
 
-        val prizes = prizeInventoryService.getAllPrizes()
+        val prizes = prizeInventoryService.getAllPrizes().filter {
+            it.wonTotal < it.totalQuantity &&
+                    it.wonToday < it.dailyLimit &&
+                    it.wonThisWeek < it.weeklyLimit
+        }
+
+        if (prizes.isEmpty()) return null
 
         val totalWeight = prizes.sumOf { it.probability }
         val randomValue = Random.nextDouble(0.0, 1.0)
-        if (randomValue>totalWeight)
-            return null
+        if (randomValue > totalWeight) return null
 
         var cumulativeWeight = 0.0
         for (prize in prizes) {
             cumulativeWeight += prize.probability
             if (randomValue <= cumulativeWeight) {
-                return prize // выбрали приз
+                return prize
             }
         }
+
         return null
     }
+
 
 }

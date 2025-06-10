@@ -21,7 +21,7 @@ class PrizeInventoryService (
 
     @Transactional
     fun incrementPrizeCounters(type: PrizeType): Boolean {
-        val prize = prizeInventoryRepository.findByType(type) ?: return false
+        val prize = prizeInventoryRepository.findByTypeForUpdate(type) ?: return false
 
         if (prize.wonTotal >= prize.totalQuantity) return false
         if (prize.wonToday >= prize.dailyLimit) return false

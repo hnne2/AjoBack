@@ -56,7 +56,11 @@ dependencies {
 	implementation("org.apache.commons:commons-text:1.11.0")
 	implementation(platform("ai.djl:bom:0.33.0"))
 	implementation("ai.djl.tensorflow:tensorflow-engine")
+	implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
+	implementation("org.glassfish:jakarta.el:4.0.2")
 	implementation("ai.djl.tensorflow:tensorflow-native-cpu:2.16.1")
+	implementation("org.springframework.boot:spring-boot-starter-mail")
+
 
 
 

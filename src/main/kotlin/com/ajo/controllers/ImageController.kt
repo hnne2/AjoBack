@@ -18,7 +18,7 @@ import java.util.*
 @RestController
 @RequestMapping("/ajo/images")
 class ImageController {
-    private val uploadDir: Path = Paths.get("\\\\wsl.localhost\\Ubuntu\\home\\gri\\uploads")
+    private val uploadDir: Path = Paths.get("/home/limkorm-check-bot/upload")
     init {
         Files.createDirectories(uploadDir)
     }
