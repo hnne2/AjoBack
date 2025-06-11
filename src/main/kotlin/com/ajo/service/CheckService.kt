@@ -24,7 +24,7 @@ class CheckService(
     fun findCheck(id:Long):Optional<Check>{
        return checkRepository.findById(id)
     }
-    fun findCheckByHash(hash:Long):Optional<Check>{
-        return checkRepository.findByHash(hash)
+    fun findChecksByHash(hash: Long): List<Check> {
+        return checkRepository.findAllByHash(hash)
     }
 }

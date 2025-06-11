@@ -11,4 +11,6 @@ interface CheckRepository : JpaRepository<Check, Long> {
     fun findByStatus(status: CheckStatus): List<Check>
     fun findByIsPrizeSentFalse(): List<Check>
     fun findByHash(hash:Long):Optional<Check>
+    fun findAllByHash(hash: Long): List<Check>
+
 }

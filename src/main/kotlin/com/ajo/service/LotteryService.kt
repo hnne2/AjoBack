@@ -39,6 +39,7 @@ class LotteryService(
         for (prize in prizes) {
             cumulativeWeight += prize.probability
             if (randomValue <= cumulativeWeight) {
+                prizeInventoryService.incrementPrizeCounters(prize.type)
                 return prize
             }
         }

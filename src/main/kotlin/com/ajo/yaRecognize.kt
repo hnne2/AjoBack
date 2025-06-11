@@ -1,46 +1,16 @@
 package com.ajo
 import java.io.File
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.URL
-import java.util.*
 import com.google.gson.JsonParser
 import org.apache.commons.text.similarity.LevenshteinDistance
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.springframework.web.multipart.MultipartFile
 
-fun recognizeTextYandex(imageFile: File): String {
-    val imageBase64 = Base64.getEncoder().encodeToString(imageFile.readBytes())
 
-    val jsonRequest = """
-{
-  "folderId": "b1gia6et98esn8k7gsbd",
-  "analyze_specs": [{
-    "content": "$imageBase64",
-    "features": [{
-      "type": "TEXT_DETECTION",
-      "textDetectionConfig": {
-        "languageCodes": ["ru", "en"]
-      }
-    }]
-  }]
+fun parseIamTokenFromResponse(jsonResponse: String): String {
+    val regex = """"iamToken"\s*:\s*"([^"]+)"""".toRegex()
+    return regex.find(jsonResponse)?.groupValues?.get(1)
+        ?: throw IllegalArgumentException("Invalid JSON response: iamToken not found")
 }
-""".trimIndent()
-    val url = URL("https://vision.api.cloud.yandex.net/vision/v1/batchAnalyze")
-    val connection = url.openConnection() as HttpURLConnection
-    connection.requestMethod = "POST"
-    connection.setRequestProperty("Authorization", "Bearer t1.9euelZqLxpXLjY_LmJuZls-Kx56Vj-3rnpWajMeVi46Sjc6QnMfOk8rJm8jl8_ctdhg--e9GJBFM_N3z920kFj7570YkEUz8zef1656VmpnKjJeKlZWdk5nHnpGWj8-a7_zF656VmpnKjJeKlZWdk5nHnpGWj8-a.cOO2dcMMzKTJCQdoGujNSlXGMJgNhKErgB-BjxgNLaajMiTCACxhFnp5RfnIVI7xyLaQTRUmzvSeK4fFMBJ3BA")
-    connection.setRequestProperty("Content-Type", "application/json")
-    connection.doOutput = true
-
-    OutputStreamWriter(connection.outputStream).use { it.write(jsonRequest) }
-
-    val response = connection.inputStream.bufferedReader().use { it.readText() }
-    println(response)
-    return response
-}
-
-
 val products = listOf(
     "AJO Dog Sense Сухой полнорационный корм с гречкой для собак с чувствительным пищеварением 12 кг",
     "AJO Dog Mini Hypoallergenic Сухой полнорационный корм с гречкой для взрослых собак миниатюрных и малых пород, склонных к аллергиям 2 кг",
@@ -110,7 +80,7 @@ fun extractClientInfo(checkText: String): RecognizeCheck? {
     for (line in lines) {
         for (product in products) {
             val sim = similarity(line.trim(), product.trim())
-            if (sim >= 0.3) { // Порог похожести
+            if (sim >= 0.08) { // Порог похожести
                 return RecognizeCheck(product, inn, uniqueId.toLong())
             }
         }
@@ -173,7 +143,6 @@ fun readClientsFromExcel(file: File): List<ClientInfo> {
     for (row in sheet.drop(1)) { // Пропускаем заголовок
         val clientId = row.getCell(0)?.toString()?.trim() ?: ""
         val name = row.getCell(1)?.toString()?.trim() ?: ""
-        val address = row.getCell(2)?.toString()?.trim() ?: ""
         val inn = row.getCell(3)?.toString()?.trim() ?: ""
         clients.add(ClientInfo(name, inn,clientId))
     }
@@ -183,7 +152,6 @@ fun readClientsFromExcel(file: File): List<ClientInfo> {
 }
 fun findClientInCheck(recognizeCheck: RecognizeCheck, clients: List<ClientInfo>): Boolean {
     for (client in clients) {
-        println(client.inn+"recog:"+recognizeCheck.inn)
         if (client.inn==recognizeCheck.inn) {
             return true
         }

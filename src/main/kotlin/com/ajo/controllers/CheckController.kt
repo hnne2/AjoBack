@@ -5,8 +5,8 @@ import com.ajo.model.*
 import com.ajo.service.CheckService
 import com.ajo.service.EmailService
 import com.ajo.service.LotteryService
+import com.ajo.service.YaService
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.ws.rs.core.Request
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.util.StringUtils
@@ -22,10 +22,11 @@ class CheckController (
     private val checkService: CheckService,
     private val imageController: ImageController,
     private val lotteryService: LotteryService,
-    private val emailService: EmailService
+    private val emailService: EmailService,
+    private val yaService: YaService
 
 ){
-    val excelFile = File("/home/limkorm-check-bot/upload//AJO.xlsx")
+    val excelFile = File("/home/limkorm-check-bot/upload/AJO.xlsx")
     val clients = readClientsFromExcel(excelFile)
     @PostMapping("/upload")
     fun verify(
@@ -38,39 +39,36 @@ class CheckController (
         val filename = "${UUID.randomUUID()}_${StringUtils.cleanPath(file.originalFilename!!)}"
         imageController.uploadImage(file, filename)
 
-//        val jsonFile = File("/home/limkorm-check-bot/upload/2.json")
-//        val recognizedText = extractTextFromJson(jsonFile.readText())
-//        val clientInfo = extractClientInfo(recognizedText)
-//        println("extractClientInfo: $clientInfo")
-//
-//        val newCheck: Check = if (clientInfo != null) {
-//            val existingCheck = checkService.findCheckByHash(clientInfo.id)
-//            if (existingCheck.isPresent) {
-//                return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
-//                // чек уже был загружен
-//            }
-//            Check(id = checkId?.toLong() ?: clientInfo.id, //todo
-//                inn = clientInfo.inn,
-//                title = clientInfo.name,
-//                imageFilename = filename,
-//                lotterySession = null,
-//                status = if (findClientInCheck(clientInfo, clients)) {
-//                        CheckStatus.manual_review
-//                } else { CheckStatus.manual_review },
-//                hash = clientInfo.id
-//            )
-//        } else { // не смог сканировать чек
-//            Check(id = checkId?.toLong() ?: System.currentTimeMillis(),
-//                imageFilename = filename,
-//                status = CheckStatus.manual_review,
-//                lotterySession = null, hash = null
-//            )
-//        }
-        val newCheck =  Check(id = checkId?.toLong() ?: System.currentTimeMillis(),   // удалить
-            imageFilename = filename,
-            status = CheckStatus.manual_review,
-            lotterySession = null, hash = null   //
-        )
+
+        val result = yaService.recognize(convertMultipartFileToFile(file))
+        val recognizedText = extractTextFromJson(result)
+        println(recognizedText)
+        val clientInfo = extractClientInfo(recognizedText)
+        println("extractClientInfo: $clientInfo")
+
+        val newCheck: Check = if (clientInfo != null) {
+            val existingCheck = checkService.findChecksByHash(clientInfo.id)
+            if (existingCheck.isNotEmpty()) {
+                return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
+                // чек уже был загружен
+            }
+            Check(id = checkId?.toLong() ?: clientInfo.id,
+                inn = clientInfo.inn,
+                title = clientInfo.name,
+                imageFilename = filename,
+                lotterySession = null,
+                status = if (findClientInCheck(clientInfo, clients)) {
+                        CheckStatus.scanned_success
+                } else { CheckStatus.manual_review },
+                hash = clientInfo.id
+            )
+        } else { // не смог сканировать чек
+            Check(id = checkId?.toLong() ?: System.currentTimeMillis(),
+                imageFilename = filename,
+                status = CheckStatus.manual_review,
+                lotterySession = null, hash = null
+            )
+        }
         checkService.save(newCheck)
         return if (newCheck.status == CheckStatus.scanned_success) {
             ResponseEntity(CheckUploadResponse("check", null ), HttpStatus.OK)
@@ -127,5 +125,6 @@ class CheckController (
         }
 
     }
+
 
 }
