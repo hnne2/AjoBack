@@ -1,9 +1,6 @@
 package com.ajo.controllers
 
-import com.ajo.model.Image
-import com.ajo.model.LotterySession
-import com.ajo.model.LotterySessionDto
-import com.ajo.model.PrizeDto
+import com.ajo.model.*
 
 import com.ajo.service.LotteryService
 import org.springframework.web.bind.annotation.*
@@ -16,26 +13,40 @@ class LotteryController(
     @GetMapping("/{lotteryId}")
     fun getSession(@PathVariable lotteryId: String): LotterySessionDto? {
         val session = service.getSessionByLotteryId(lotteryId) ?: return null
+
         val prizeInventory = session.prize
         val prizeDto = prizeInventory?.let {
             PrizeDto(
                 id = it.id,
-                type = prizeInventory.type,
-                label = prizeInventory.label,
-                description = prizeInventory.description,
-                image = prizeInventory.image?.let { url ->
-                    Image(url = url, alt = prizeInventory.label ?: "image")
-                },
+                type = it.type,
+                label = it.label,
+                description = it.description,
+                image = it.image?.let { url ->
+                    Image(url = url, alt = it.label ?: "image")
+                }
             )
-
         }
-        val sessionDto = LotterySessionDto(
+
+        // Пример данных для стикеров — можно брать из конфигурации или БД
+        val stickersDto = StickersDto(
+            link = StickerLink(
+                to = "https://t.me/addstickers/AJOpet",
+                label = "Получить стикеры"
+            ),
+            image = StickerImage(
+                url = "sticker.png",
+                alt = "Стикер"
+            )
+        )
+
+        return LotterySessionDto(
             lotteryId = session.lotteryId,
             status = session.status,
             prize = prizeDto,
-            prizeCardIndex = session.prizeCardIndex
+            prizeCardIndex = session.prizeCardIndex,
+            stickers = stickersDto
         )
-       return sessionDto
     }
+
 
 }

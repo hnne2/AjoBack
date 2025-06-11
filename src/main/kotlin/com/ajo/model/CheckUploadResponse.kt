@@ -1,7 +1,7 @@
 package com.ajo.model
 
 data class SeoResponse(
-    val H1: String
+    val h1: String
 )
 
 data class CheckUploadResponse(
