@@ -2,6 +2,9 @@ package com.ajo.service
 
 import com.ajo.model.Check
 import com.ajo.model.CheckStatus
+import com.ajo.recognize.findClientInCheck
+import com.ajo.recognize.model.ClientInfo
+import com.ajo.recognize.model.RecognizeCheck
 import com.ajo.repository.CheckRepository
 import org.springframework.stereotype.Service
 import java.util.Optional
@@ -10,14 +13,6 @@ import java.util.Optional
 class CheckService(
     private val checkRepository: CheckRepository
 ) {
-    fun getAllChecks(): List<Check> = checkRepository.findAll()
-
-    fun getPendingChecks(): List<Check> = checkRepository.findByStatus(CheckStatus.manual_review)
-
-    fun markPrizeSent(checkId: Long) {
-        val check = checkRepository.findById(checkId).orElseThrow { Exception("Check not found") }
-        checkRepository.save(check.copy(isPrizeSent = true))
-    }
     fun save(check: Check){
         checkRepository.save(check)
     }
@@ -26,5 +21,19 @@ class CheckService(
     }
     fun findChecksByHash(hash: Long): List<Check> {
         return checkRepository.findAllByHash(hash)
+    }
+    fun saveRecognizeCheck(filename:String,checkId:Long,clientInfo:RecognizeCheck,clients:List<ClientInfo>){
+        val newCheck = Check(id = checkId,
+            inn = clientInfo.inn,
+            title = clientInfo.name,
+            imageFilename = filename,
+            lotterySession = null,
+            status = if (findClientInCheck(clientInfo, clients)) {
+                CheckStatus.scanned_success
+            } else { CheckStatus.manual_review },
+            hash = clientInfo.id
+        )
+        save(newCheck)
+
     }
 }

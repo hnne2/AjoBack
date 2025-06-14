@@ -1,7 +1,8 @@
 package com.ajo.controllers
 
-import com.ajo.*
 import com.ajo.model.*
+import com.ajo.recognize.*
+import com.ajo.recognize.readProductsFromExcel
 import com.ajo.service.CheckService
 import com.ajo.service.EmailService
 import com.ajo.service.LotteryService
@@ -15,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.util.*
 
-
 @RestController
 @RequestMapping("/ajo")
 class CheckController (
@@ -24,58 +24,29 @@ class CheckController (
     private val lotteryService: LotteryService,
     private val emailService: EmailService,
     private val yaService: YaService
-
 ){
+
     val excelFile = File("/home/limkorm-check-bot/upload/AJO.xlsx")
     val clients = readClientsFromExcel(excelFile)
+    val products = readProductsFromExcel(excelFile)
     @PostMapping("/upload")
-    fun verify(
-    @RequestParam file: MultipartFile,
-    @RequestParam(value = "chek_id", required = false) checkId: String?
+    fun verify(@RequestParam file: MultipartFile, @RequestParam(value = "chek_id", required = false) checkId: String?
     ): ResponseEntity<CheckUploadResponse> {
-        if (file.isEmpty) {
+        if (file.isEmpty || checkId.isNullOrEmpty()) {
             return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
         }
         val filename = "${UUID.randomUUID()}_${StringUtils.cleanPath(file.originalFilename!!)}"
         imageController.uploadImage(file, filename)
+        val clientInfo = yaService.getClientInfo(convertMultipartFileToFile(file),products) ?: return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
 
+        val existingCheck = checkService.findChecksByHash(clientInfo.id)
 
-        val result = yaService.recognize(convertMultipartFileToFile(file))
-        val recognizedText = extractTextFromJson(result)
-        println(recognizedText)
-        val clientInfo = extractClientInfo(recognizedText)
-        println("extractClientInfo: $clientInfo")
-
-        val newCheck: Check = if (clientInfo != null) {
-            val existingCheck = checkService.findChecksByHash(clientInfo.id)
-            if (existingCheck.isNotEmpty()) {
-                return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
-                // чек уже был загружен
+        if (existingCheck.isNotEmpty()) {
+            return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
+            // чек уже был загружен
             }
-            Check(id = checkId?.toLong() ?: clientInfo.id,
-                inn = clientInfo.inn,
-                title = clientInfo.name,
-                imageFilename = filename,
-                lotterySession = null,
-                status = if (findClientInCheck(clientInfo, clients)) {
-                        CheckStatus.scanned_success
-                } else { CheckStatus.manual_review },
-                hash = clientInfo.id
-            )
-        } else { // не смог сканировать чек
-            Check(id = checkId?.toLong() ?: System.currentTimeMillis(),
-                imageFilename = filename,
-                status = CheckStatus.manual_review,
-                lotterySession = null, hash = null
-            )
-        }
-        checkService.save(newCheck)
-        return if (newCheck.status == CheckStatus.scanned_success) {
-            ResponseEntity(CheckUploadResponse("check", null ), HttpStatus.OK)
-        } else {
-            emailService.sendNewCheckNotification()
-            ResponseEntity(CheckUploadResponse("check", null ), HttpStatus.OK)
-        }
+             checkService.saveRecognizeCheck(filename, checkId = checkId.toLong(),clientInfo,clients)
+       return ResponseEntity(CheckUploadResponse("check", null ), HttpStatus.OK)
     }
 
 
