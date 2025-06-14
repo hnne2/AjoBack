@@ -3,14 +3,17 @@ import com.ajo.recognize.model.RecognizeCheck
 import java.io.File
 import org.springframework.web.multipart.MultipartFile
 
-fun extractClientInfo(checkText: String,products:List<String>): RecognizeCheck? {
+fun extractClientInfo(checkText: String, products: List<String>): RecognizeCheck? {
     val normalizedProducts = products.map { ProductEntry(it, normalize(it)) }
+
     val innRegex = Regex("\\b\\d{12}\\b")
-    val uniqueIdRegex = Regex("\\b\\d{16}\\b")
+    val innAfterWordRegex = Regex("(?i)ИНН\\s*(\\d{10,12})")
 
     val inn = innRegex.find(checkText)?.value
-    val uniqueId = uniqueIdRegex.find(checkText) ?: return null
+        ?: innAfterWordRegex.find(checkText)?.groupValues?.get(1)
 
+    val uniqueIdRegex = Regex("\\b\\d{16}\\b")
+    val uniqueId = uniqueIdRegex.find(checkText) ?: return null
 
     val lines = checkText.lines().filter { it.isNotBlank() }
 
@@ -28,11 +31,10 @@ fun extractClientInfo(checkText: String,products:List<String>): RecognizeCheck? 
     }
 
     return if (bestScore >= 0.3) {
-        RecognizeCheck(bestMatch!!.original, inn, uniqueId.value.toLong())
+        RecognizeCheck(name = bestMatch!!.original, inn = inn, id = uniqueId.value.toLong())
+    } else {
+        RecognizeCheck(name = null, inn = inn, id = uniqueId.value.toLong())
     }
-    else RecognizeCheck(inn = inn, id =  uniqueId.value.toLong(), name = null)
-
-
 }
 
 fun parseIamTokenFromResponse(jsonResponse: String): String {
