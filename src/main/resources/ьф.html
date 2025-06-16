@@ -24,7 +24,7 @@
         const formData = new FormData();
         formData.append("file", file); // Важно: 'file' должен совпадать с @RequestParam в контроллере
 
-        fetch("http://localhost:8081/api/upload/", {
+        fetch(" https://limkorm-check-bot.demo.onlinebees.ru/ajo/upload ", {
             method: "POST",
             body: formData
         })

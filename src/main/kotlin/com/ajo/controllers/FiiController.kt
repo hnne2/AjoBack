@@ -76,7 +76,7 @@ class FiiController(
                 "title" to "Участвуй в розыгрыше и выигрывай",
                 "stickers" to mapOf(
                     "image" to mapOf(
-                        "url" to "stickers.png",
+                        "url" to "/images/home/stickers.png",
                         "alt" to "Стикеры для Telegram"
                     ),
                     "label" to "Получи стикеры для телеграма",
@@ -85,10 +85,10 @@ class FiiController(
                 "list" to listOf(
                     mapOf(
                         "id" to 1,
-                        "label" to "Билет на VK fest",
+                        "label" to "Билеты на VK fest",
                         "image" to mapOf(
                             "url" to "/images/prizes/vkfest.svg",
-                            "alt" to "Билет на VK fest"
+                            "alt" to "Билеты на VK fest"
                         )
                     ),
                     mapOf(

@@ -38,15 +38,16 @@ class CheckController (
         val filename = "${UUID.randomUUID()}_${StringUtils.cleanPath(file.originalFilename!!)}"
         imageController.uploadImage(file, filename)
         val clientInfo = yaService.getClientInfo(convertMultipartFileToFile(file)) ?: return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
-
-        val existingCheck = clientInfo.inn?.let { checkService.findChecksByHash(it.toLong()) }
-
-        if (existingCheck!=null) {
-            return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
-            // чек уже был загружен
+        if (!clientInfo.inn.isNullOrEmpty()){
+            val existingCheck = checkService.findChecksByHash(clientInfo.inn.toLong())
+            if (existingCheck.isNotEmpty()) {
+                return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
+                // чек уже был загружен
             }
-             checkService.saveRecognizeCheck(filename, checkId = checkId.toLong(),clientInfo,clients)
-       return ResponseEntity(CheckUploadResponse("check", null ), HttpStatus.OK)
+        }
+        emailService.sendNewCheckNotification()
+        checkService.saveRecognizeCheck(filename, checkId = checkId.toLong(),clientInfo,clients)
+        return ResponseEntity(CheckUploadResponse("check", null ), HttpStatus.OK)
     }
 
 

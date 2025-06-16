@@ -20,4 +20,13 @@ class EmailService(
 
         mailSender.send(message)
     }
+    fun sendNewWinnerNotifi() {
+        val mail =mailRepository.getReferenceById(1)
+        val message = SimpleMailMessage()
+        message.setTo(mail.mail)
+        message.subject = ""
+        message.text = "Есть новый победитель"
+
+        mailSender.send(message)
+    }
 }

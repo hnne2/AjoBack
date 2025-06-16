@@ -27,7 +27,7 @@ class ContentController(private val legalTextsService: LegalTextsService) {
                     "twitterCard" to "summary_large_image",
                     "robots" to "noindex"
                 ),
-                "H1" to "Пользовательское соглашение",
+                "H1" to "",
                 "content" to null
             ),
             "schemaOrg" to emptyList<Any>(),
@@ -43,15 +43,15 @@ class ContentController(private val legalTextsService: LegalTextsService) {
         return mapOf(
             "seo" to mapOf(
                 "meta" to mapOf(
-                    "title" to "Пользовательское соглашение",
-                    "ogTitle" to "Пользовательское соглашение",
+                    "title" to "Политика конфиденциальности",
+                    "ogTitle" to "Политика конфиденциальности",
                     "description" to "Это описание для страницы Пользовательское соглашение",
                     "ogDescription" to "Это описание для страницы Пользовательское соглашение",
                     "ogImage" to "/images/limkorm.jpg",
                     "twitterCard" to "summary_large_image",
                     "robots" to "noindex"
                 ),
-                "H1" to "Пользовательское соглашение",
+                "H1" to "",
                 "content" to null
             ),
             "schemaOrg" to emptyList<Any>(),
@@ -67,15 +67,15 @@ class ContentController(private val legalTextsService: LegalTextsService) {
         return mapOf(
             "seo" to mapOf(
                 "meta" to mapOf(
-                    "title" to "Пользовательское соглашение",
-                    "ogTitle" to "Пользовательское соглашение",
+                    "title" to "Правила акции",
+                    "ogTitle" to "Правила акции",
                     "description" to "Это описание для страницы Пользовательское соглашение",
                     "ogDescription" to "Это описание для страницы Пользовательское соглашение",
                     "ogImage" to "/images/limkorm.jpg",
                     "twitterCard" to "summary_large_image",
                     "robots" to "noindex"
                 ),
-                "H1" to "Пользовательское соглашение",
+                "H1" to "",
                 "content" to null
             ),
             "schemaOrg" to emptyList<Any>(),
@@ -89,4 +89,3 @@ class ContentController(private val legalTextsService: LegalTextsService) {
         return ResponseEntity.ok(mapOf("email" to email))
     }
 }
-    

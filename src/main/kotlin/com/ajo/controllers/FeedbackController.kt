@@ -1,6 +1,7 @@
 package com.ajo.controllers
 
 import com.ajo.model.CallbackRequest
+import com.ajo.service.EmailService
 import com.ajo.service.FeedbackService
 import com.ajo.service.LotteryService
 import com.ajo.service.PrizeInventoryService
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*
 class FeedbackController(
     private val service: FeedbackService,
     private val lotteryService: LotteryService,
-    private val inventoryService: PrizeInventoryService
+    private val emailService:EmailService
 
 ) {
 
@@ -29,7 +30,7 @@ class FeedbackController(
             session.ipAddress =ip
             lotteryService.saveSession(session)
         }
-        
+        emailService.sendNewWinnerNotifi()
         service.saveFeedback(request)
     }
 }

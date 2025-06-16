@@ -3,16 +3,14 @@ import com.ajo.recognize.model.RecognizeCheck
 import java.io.File
 import org.springframework.web.multipart.MultipartFile
 
-fun extractClientInfo(checkText: String): RecognizeCheck? {
-    val innRegex = Regex("\\b\\d{12}\\b")
+fun extractClientInfo(checkText: String): RecognizeCheck {
     val innAfterWordRegex = Regex("(?i)ИНН\\s*(\\d{10,12})")
+    val innRegex = Regex("\\b\\d{12}\\b") // запасной вариант
 
-    val inn = innRegex.find(checkText)?.value
-        ?: innAfterWordRegex.find(checkText)?.groupValues?.get(1)
+    val inn = innAfterWordRegex.find(checkText)?.groupValues?.get(1)
+        ?: innRegex.find(checkText)?.value
 
-    // Варианты написания бренда
     val keywords = setOf("ajo", "ajd", "айо", "айщ")
-
     val lines = checkText.lines().filter { it.isNotBlank() }
 
     for (line in lines) {
@@ -28,6 +26,7 @@ fun extractClientInfo(checkText: String): RecognizeCheck? {
 
     return RecognizeCheck(name = null, inn = inn)
 }
+
 
 fun parseIamTokenFromResponse(jsonResponse: String): String {
     val regex = """"iamToken"\s*:\s*"([^"]+)"""".toRegex()

@@ -18,7 +18,7 @@ import java.util.*
 @RestController
 @RequestMapping("/ajo/images")
 class ImageController {
-    private val uploadDir: Path = Paths.get("/home/limkorm-check-bot/upload")
+    private val uploadDir: Path = Paths.get("/home/l/limkorm/fest.ajo-pet.ru/public_html/upload")
     init {
         Files.createDirectories(uploadDir)
     }
