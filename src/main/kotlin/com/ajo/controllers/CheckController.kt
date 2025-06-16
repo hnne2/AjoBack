@@ -26,22 +26,22 @@ class CheckController (
     private val yaService: YaService
 ){
 
-    val excelFile = File("/home/limkorm-check-bot/upload/AJO.xlsx")
-    val clients = readClientsFromExcel(excelFile)
-    val products = readProductsFromExcel(excelFile)
+
     @PostMapping("/upload")
     fun verify(@RequestParam file: MultipartFile, @RequestParam(value = "chek_id", required = false) checkId: String?
     ): ResponseEntity<CheckUploadResponse> {
+        val excelFile = File("/home/limkorm-check-bot/upload/AJO.xlsx")
+        val clients = readClientsFromExcel(excelFile)
         if (file.isEmpty || checkId.isNullOrEmpty()) {
             return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
         }
         val filename = "${UUID.randomUUID()}_${StringUtils.cleanPath(file.originalFilename!!)}"
         imageController.uploadImage(file, filename)
-        val clientInfo = yaService.getClientInfo(convertMultipartFileToFile(file),products) ?: return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
+        val clientInfo = yaService.getClientInfo(convertMultipartFileToFile(file)) ?: return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
 
-        val existingCheck = checkService.findChecksByHash(clientInfo.id)
+        val existingCheck = clientInfo.inn?.let { checkService.findChecksByHash(it.toLong()) }
 
-        if (existingCheck.isNotEmpty()) {
+        if (existingCheck!=null) {
             return ResponseEntity(CheckUploadResponse("error", null), HttpStatus.BAD_REQUEST)
             // чек уже был загружен
             }

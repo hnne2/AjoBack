@@ -31,7 +31,7 @@ class CheckService(
             status = if (findClientInCheck(clientInfo, clients)) {
                 CheckStatus.scanned_success
             } else { CheckStatus.manual_review },
-            hash = clientInfo.id
+            hash = clientInfo.inn?.toLong()
         )
         save(newCheck)
 

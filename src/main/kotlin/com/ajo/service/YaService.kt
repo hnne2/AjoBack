@@ -17,12 +17,12 @@ class YaService {
      var token:String = "y0__xDCxtrJBxjB3RMg1uSiqhOikBrJm0It27CZQqAvrvizzj63Dw"
     @Value("\${catalog}")
      var catalog:String ="b1gatquqpsamjh30u1h1"
-    fun getClientInfo(file: File,products:List<String>): RecognizeCheck? {
+    fun getClientInfo(file: File): RecognizeCheck? {
        // val file = convertMultipartFileToFile(multipartFile)
         val iamToken=generateIamToken(token)
        val recognizeText = recognizeText(iamToken = iamToken, imageFile = file, folderId = catalog)
         val extractText = extractTextFromJson(recognizeText)
-       return extractClientInfo(extractText,products)
+       return extractClientInfo(extractText)
     }
     fun generateIamToken(oauthToken: String): String {
         val client = HttpClient.newHttpClient()
